@@ -2,13 +2,14 @@
 using Amazon.S3.Model;
 using FastEndpoints;
 using Microsoft.Extensions.Options;
+using PreSignedUrl.Endpoints.GetFile;
 
 namespace PreSignedUrl.Endpoints.UpdateFile
 {
     public class Request
     {
-        public int Latitude { get; set; }
-        public int Longitude { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 
     public class Response
@@ -20,11 +21,13 @@ namespace PreSignedUrl.Endpoints.UpdateFile
     {
         private readonly AwsConfig _config;
         private readonly IAmazonS3 _amazonS3Client;
+        private readonly ILogger<GetFileByKeyEndpoint> _logger;
 
-        public UpdateFileEndpoint(IOptions<AwsConfig> awsOptionsConfig, IAmazonS3 amazonS3Client)
+        public UpdateFileEndpoint(IOptions<AwsConfig> awsOptionsConfig, IAmazonS3 amazonS3Client, ILogger<GetFileByKeyEndpoint> logger)
         {
             _config = awsOptionsConfig.Value;
             _amazonS3Client = amazonS3Client;
+            _logger = logger;
         }
 
         public override void Configure()
@@ -47,6 +50,9 @@ namespace PreSignedUrl.Endpoints.UpdateFile
                     Verb = Amazon.S3.HttpVerb.PUT
                 };
 
+                request.Metadata.Add("x-amz-meta-latitude", req.Latitude.ToString());
+                request.Metadata.Add("x-amz-meta-longitude", req.Longitude.ToString());
+
                 var url = await _amazonS3Client.GetPreSignedURLAsync(request);
 
                 await SendOkAsync(new BaseResponse<Response>
@@ -59,6 +65,8 @@ namespace PreSignedUrl.Endpoints.UpdateFile
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, ex.Message);
+
                 await SendAsync(new BaseResponse<Response> { Message = "An unexpected error occurred. " }, 500);
             }
         }

@@ -19,11 +19,13 @@ namespace PreSignedUrl.Endpoints.GetFile
     {
         private readonly AwsConfig _config;
         private readonly IAmazonS3 _amazonS3Client;
+        private readonly ILogger<GetFileByKeyEndpoint> _logger;
 
-        public GetFileByKeyEndpoint(IOptions<AwsConfig> awsOptionsConfig, IAmazonS3 amazonS3Client)
+        public GetFileByKeyEndpoint(IOptions<AwsConfig> awsOptionsConfig, IAmazonS3 amazonS3Client, ILogger<GetFileByKeyEndpoint> logger)
         {
             _config = awsOptionsConfig.Value;
             _amazonS3Client = amazonS3Client;
+            _logger = logger;
         }
 
         public override void Configure()
@@ -56,6 +58,8 @@ namespace PreSignedUrl.Endpoints.GetFile
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, ex.Message);
+
                 await SendAsync(new BaseResponse<Response> { Message = "An unexpected error occurred. " }, 500);
             }
         }
