@@ -1,4 +1,5 @@
-﻿using Amazon.S3;
+﻿using Amazon;
+using Amazon.S3;
 using Amazon.S3.Model;
 using FastEndpoints;
 using Microsoft.Extensions.Options;
@@ -14,6 +15,7 @@ namespace PreSignedUrl.Endpoints.UpdateFile
 
     public class Response
     {
+        public string Key { get; set; }
         public string Url { get; set; }
     }
 
@@ -46,12 +48,14 @@ namespace PreSignedUrl.Endpoints.UpdateFile
                 {
                     BucketName = _config.Bucket,
                     Key = objKey,
-                    Expires = DateTime.UtcNow.AddHours(_config.Duration),
-                    Verb = Amazon.S3.HttpVerb.PUT
+                    Expires = DateTime.UtcNow.AddMinutes(_config.Duration),
+                    Verb = HttpVerb.PUT
                 };
 
-                request.Metadata.Add("x-amz-meta-latitude", req.Latitude.ToString());
-                request.Metadata.Add("x-amz-meta-longitude", req.Longitude.ToString());
+                //request.Metadata.Add("latitude", req.Latitude.ToString());
+                //request.Metadata.Add("longitude", req.Longitude.ToString());
+
+                AWSConfigsS3.UseSignatureVersion4 = true;
 
                 var url = await _amazonS3Client.GetPreSignedURLAsync(request);
 
@@ -59,6 +63,7 @@ namespace PreSignedUrl.Endpoints.UpdateFile
                 {
                     Object = new Response
                     {
+                        Key = objKey,
                         Url = url
                     }
                 });

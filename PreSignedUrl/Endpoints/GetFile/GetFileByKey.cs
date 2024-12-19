@@ -2,6 +2,7 @@
 using Amazon.S3;
 using FastEndpoints;
 using Microsoft.Extensions.Options;
+using Amazon;
 
 namespace PreSignedUrl.Endpoints.GetFile
 {
@@ -42,9 +43,11 @@ namespace PreSignedUrl.Endpoints.GetFile
                 {
                     BucketName = _config.Bucket,
                     Key = req.Key,
-                    Expires = DateTime.UtcNow.AddHours(_config.Duration),
-                    Verb = Amazon.S3.HttpVerb.GET
+                    Expires = DateTime.UtcNow.AddMinutes(_config.Duration),
+                    Verb = HttpVerb.GET
                 };
+
+                AWSConfigsS3.UseSignatureVersion4 = true;
 
                 var url = await _amazonS3Client.GetPreSignedURLAsync(request);
 
