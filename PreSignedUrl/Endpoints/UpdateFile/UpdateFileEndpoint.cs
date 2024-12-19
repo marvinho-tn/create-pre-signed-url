@@ -52,8 +52,8 @@ namespace PreSignedUrl.Endpoints.UpdateFile
                     Verb = HttpVerb.PUT
                 };
 
-                //request.Metadata.Add("latitude", req.Latitude.ToString());
-                //request.Metadata.Add("longitude", req.Longitude.ToString());
+                request.Metadata.Add(nameof(Request.Latitude), req.Latitude.ToString());
+                request.Metadata.Add(nameof(Request.Longitude), req.Longitude.ToString());
 
                 AWSConfigsS3.UseSignatureVersion4 = true;
 
